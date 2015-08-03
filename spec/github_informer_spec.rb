@@ -21,5 +21,27 @@ RSpec.describe GithubInformer do
     end
   end
 
+  describe '.normalise_status' do
+    it "should normalise :pass as 'success'" do
+      expect( GithubInformer.normalise_status(:pass) ).to eq 'success'
+    end
+    it "should normalise :fail as 'failure'" do
+      expect( GithubInformer.normalise_status(:fail) ).to eq 'failure'
+    end
+    it "should normalise :error as 'error'" do
+      expect( GithubInformer.normalise_status(:error) ).to eq 'error'
+    end
+  end
+
+  describe '.initialize' do
+    it "errors if you don't provide a context" do
+      expect { GithubInformer.new() }.to raise_error
+    end
+
+    it "can be initialized with only a context" do
+      expect( GithubInformer.new( :context => 'HiveCI' ) ).to be_a GithubInformer
+    end
+  end
+
 end
 

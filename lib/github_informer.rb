@@ -4,19 +4,20 @@ class GithubInformer
   
   attr_accessor :params, :repo, :sha, :result
 
-  ::Octokit.configure do |c|
-    c.access_token = ENV['GITHUB_AUTH']
-    c.auto_paginate = true
-  end
-
   # Create a new GithubInformer
   # GithubInformer.new( :context => 'HiveCI',
   #                     :url => 'http://hive.local',
   #                     :repo => '/path/to/checkout' )
   def initialize( args = {} )
+
+    ::Octokit.configure do |c|
+      c.access_token = args[:github_auth] || ENV['GITHUB_AUTH']
+      c.auto_paginate = true
+    end
+
     @params = {}
-    @params[:context] = args[:context] or raise "Requires a context"
-    @params[:url]     = args[:url]
+    @params[:context]    = args[:context] or raise "Requires a context"
+    @params[:target_url] = args[:url]
     
     path = args[:repo] || '.'
     @repo = GithubInformer.determine_repo(path)
@@ -26,12 +27,11 @@ class GithubInformer
   # Report start of job to github
   # ghi.report_start( :description => 'Build job in progress')
   def report_start( args = {} )
-    #Octokit.create_status( repo, sha, 'pending', params.merge(args) )
-    p [ repo, sha, 'pending', params.merge(args) ]
+    Octokit.create_status( repo, sha, 'pending', params.merge(args) )
   end
 
   def execute( cmd )
-    `#{cmd}`
+    system( cmd )
     @result = $?.exitstatus
   end
 
@@ -43,21 +43,24 @@ class GithubInformer
                            :default => [:fail, 'Do not merge' ] } )
     if result
       (status,description) = args[:default] || [ :fail, 'Do not merge' ]
-      if hash = args.select { |a| a === result }
+      hash = args.select { |a| a === result }
+      if !hash.empty?
         (status, description) = hash.values.flatten
       end
       
       status = GithubInformer.normalise_status(status)
-      #Octokit.create_status( repo, sha, status, params.merge( {:description => description} )
-      p [ repo, sha, status, params.merge( {:description => description} ) ]
+      Octokit.create_status( repo, sha, status, params.merge( {:description => description} ) )
+    else
+      Octokit.create_status( repo, sha, 'error', params.merge( {:description => 'Program never completed'} ) )
     end
   end
 
+  # Make sure the statuses are what the github api expect
   def self.normalise_status(status)
-    case status
-    when status =~ /fail/
+    case
+    when status.to_s.match(/fail/)
       'failure'
-    when status =~ /pass/
+    when status.to_s.match(/pass/)
       'success'
     else
       status.to_s

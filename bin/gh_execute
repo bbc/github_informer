@@ -1,0 +1,60 @@
+#! /usr/bin/env ruby
+
+require 'optparse'
+require 'ostruct'
+require 'github_informer'
+
+class CLIParser
+
+  #
+  # Return a structure describing the options.
+  #
+  def self.parse(args)
+    
+    # Default values
+    options = OpenStruct.new
+    options.context = 'Custom Check'
+    options.path = '.'
+    options.url  = ENV['BUILD_URL'] #Chances are this is running in jenkins
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = "Usage: ghi_execute [options]"
+
+      opts.on("-c", "--context NAME",
+              "Name to identify this check.") do |name|
+        options.context = name
+      end
+      
+      opts.on("-p", "--path PATH",
+              "Path to the cloned github repo") do |path|
+        options.path = path
+      end
+ 
+       opts.on("-c", "--cmd COMMAND",
+              "The command to run") do |cmd|
+        options.cmd = cmd
+      end
+      
+       opts.on("-u", "--url URL",
+              "Url to link back to the execution from github") do |path|
+        options.url = url
+      end
+
+    end
+
+    opt_parser.parse!(args)
+    options
+  end 
+end 
+
+options = CLIParser.parse(ARGV)
+
+raise "Must include a cmd to execute ( --cmd 'make' )" if !options.cmd
+
+g = GithubInformer.new(:context => options.context, :url => options.url, :repo => options.path)
+
+g.report_start()
+
+g.execute( options.cmd )
+
+g.report_end()

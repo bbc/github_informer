@@ -13,7 +13,7 @@ RSpec.describe GithubInformer do
   describe '.sha' do
     it "Should pick out the sha from the path" do
       expect( GithubInformer.determine_sha('.') ).to be_a String
-      expect( GithubInformer.determine_sha('.').length ).to eq 41
+      expect( GithubInformer.determine_sha('.').length ).to eq 40
     end
 
     it "Should raise an error if it can't identify the sha" do

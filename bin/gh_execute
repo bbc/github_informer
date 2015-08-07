@@ -58,3 +58,5 @@ g.report_start()
 g.execute( options.cmd )
 
 g.report_end()
+
+exit(g.result)

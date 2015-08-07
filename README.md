@@ -9,6 +9,12 @@ hooks to let you add CI status check information to your commits. These status
 checks appear alongside your pull request discussion in github and help with the
 conversation.
 
+### Authentication
+
+github_informer uses OAuth access tokens to manage access. You should set the 
+```GITHUB_AUTH``` environment variable to make the auth token available to the 
+gem.
+
 ### Using the CLI
 
 The CLI is the easiest method of capturing your status checks. Simply install
@@ -49,3 +55,10 @@ script gives comprehensive failure messages:
     g.report_end( 0      => [:pass, 'Unit tests were fine: good to merge'],
                   1      => [:pending, 'Tests are re-running. Hold off merge.'],
                   2..200 => [:fail, 'Unit test failure. Do not merge'] )
+
+## License
+
+GithubInformer is available to everyone under the terms of the MIT open source licence. 
+Take a look at the LICENSE file in the code.
+
+Copyright (c) 2015 BBC
